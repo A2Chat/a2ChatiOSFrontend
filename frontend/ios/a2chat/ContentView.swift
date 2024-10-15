@@ -1,16 +1,16 @@
 import SwiftUI
-import FirebaseAuth // Delete this line if not using Firebase Authentication
+import FirebaseAuth
 
 struct ContentView: View {
-    @State private var isSignedIn = false // Delete this line if not using Firebase Authentication
+    @State private var isSignedIn = false
+    @State private var userUID: String? = nil
 
     var body: some View {
         NavigationView {
-            VStack(spacing: 20) { // Added spacing between elements
-                
+            VStack(spacing: 20) {
                 // Firebase Status
-                if isSignedIn { // Delete this block if not using Firebase Authentication
-                    Text("Signed in successfully!")
+                if isSignedIn {
+                    Text("Signed in successfully! UID: \(userUID ?? "N/A")")
                 } else {
                     Text("Not signed in yet")
                 }
@@ -20,7 +20,7 @@ struct ContentView: View {
                     Text("Join")
                         .font(.headline)
                         .padding()
-                        .frame(maxWidth: .infinity) // Make button full width
+                        .frame(maxWidth: .infinity)
                         .background(Color.green)
                         .foregroundColor(.white)
                         .cornerRadius(10)
@@ -31,7 +31,7 @@ struct ContentView: View {
                     Text("Create")
                         .font(.headline)
                         .padding()
-                        .frame(maxWidth: .infinity) // Make button full width
+                        .frame(maxWidth: .infinity)
                         .background(Color.blue)
                         .foregroundColor(.white)
                         .cornerRadius(10)
@@ -39,7 +39,7 @@ struct ContentView: View {
                 
                 // Sign In Button
                 Button(action: {
-                    signInAnonymously() // Delete this line and button block if not using Firebase Authentication
+                    signOutAndSignInAnonymously() // Call the new function
                 }) {
                     Text("Sign In Anonymously")
                         .font(.headline)
@@ -51,19 +51,37 @@ struct ContentView: View {
                 }
             }
             .padding()
-            .navigationTitle("A2Chat") // Title for the navigation bar
+            .navigationTitle("A2Chat")
+            .onAppear {
+                // Check if user is already signed in
+                if let user = Auth.auth().currentUser {
+                    isSignedIn = true
+                    userUID = user.uid
+                }
+            }
         }
     }
     
-    // Firebase Anonymous Sign In Method
-    func signInAnonymously() { // Delete this entire function if not using Firebase Authentication
+    // Sign Out and Create a New Anonymous User
+    func signOutAndSignInAnonymously() {
+        do {
+            try Auth.auth().signOut() // Sign out the current user
+            print("User signed out successfully")
+        } catch let signOutError {
+            print("Error signing out: \(signOutError.localizedDescription)")
+        }
+
+        // Sign in anonymously
         Auth.auth().signInAnonymously { authResult, error in
             if let error = error {
                 print("Error signing in: \(error.localizedDescription)")
                 return
             }
-            print("Successfully signed in: \(authResult?.user.uid ?? "No UID")")
-            isSignedIn = true
+            if let user = authResult?.user {
+                print("Successfully signed in: \(user.uid)")
+                userUID = user.uid // Update userUID
+                isSignedIn = true
+            }
         }
     }
 }
