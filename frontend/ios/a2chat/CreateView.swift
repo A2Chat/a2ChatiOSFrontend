@@ -1,13 +1,29 @@
 import SwiftUI
+import FirebaseAuth
+import FirebaseFirestore
 
 struct CreateView: View {
-    let chatTitle: String = "123456"
+    var userUID: String
     
+    init(userUID: String) {
+        self.userUID = userUID
+    }
+    
+    // Lobby handling
+    private var lobbyService = LobbyService()
+    
+    // Textfield
     @State private var chatText = ""
     @FocusState private var isTextFieldFocused: Bool
     @Environment(\.presentationMode) var presentationMode
+    
+    // End button
     @State private var showAlert = false
+    
+    // Room code hide
     @State private var isRoomCodeVisible: Bool = false
+    @State private var lobbyUID: String = "" // Store generated lobbyUID
+    let chatTitle: String = "123456"
     
     var body: some View {
         ZStack {
@@ -20,6 +36,9 @@ struct CreateView: View {
             }
         }
         .padding(.top, 16)
+        .onAppear {
+            createLobby() // Call createLobby when the view appears
+        }
         .navigationBarTitle(isRoomCodeVisible ? chatTitle : "", displayMode: .inline)
         .toolbar {
             // Show/Hide button
@@ -37,7 +56,7 @@ struct CreateView: View {
                 title: Text("End Chat"),
                 message: Text("Are you sure you want to delete the chat lobby?"),
                 primaryButton: .destructive(Text("Delete")) {
-                    presentationMode.wrappedValue.dismiss()
+                    signOutAndReturn() // Sign out and return to the previous view
                 },
                 secondaryButton: .cancel()
             )
@@ -65,7 +84,6 @@ struct CreateView: View {
             .animation(.easeInOut(duration: 0.2), value: isRoomCodeVisible)
         }
     }
-
 
     // End button
     private var endButton: some View {
@@ -145,8 +163,82 @@ struct CreateView: View {
         .background(Color.blue)
         .cornerRadius(4)
     }
-}
 
-#Preview {
-    CreateView()
+    // Sign out and return to the previous view
+    private func signOutAndReturn() {
+        // First, attempt to delete the lobby
+        deleteLobby(lobbyUID: lobbyUID) { lobbyDeleted in
+            if lobbyDeleted {
+                // Then, attempt to delete the user
+                deleteUser { userDeleted in
+                    if userDeleted {
+                        print("User with UID \(userUID) deleted successfully and signed out")
+                        
+                        // Ensure UI update happens on the main thread
+                        DispatchQueue.main.async {
+                            presentationMode.wrappedValue.dismiss() // Dismiss the current view
+                        }
+                    } else {
+                        print("User deletion failed")
+                    }
+                }
+            } else {
+                print("Lobby deletion failed. User will not be signed out.")
+            }
+        }
+    }
+    
+    private func createLobby() {
+        let db = Firestore.firestore()
+            
+        // Create a new document with an auto-generated ID
+        let newLobbyRef = db.collection("lobbies").document()
+        self.lobbyUID = newLobbyRef.documentID // Get the auto-generated lobby ID
+        
+        let newLobby = Lobby(
+            lobbyID: lobbyUID,
+            users: [userUID].compactMap { $0 },
+            isActive: true
+        )
+        
+        newLobbyRef.setData(newLobby.toDictionary()) { error in
+            if let error = error {
+                print("Error creating lobby: \(error.localizedDescription)")
+            } else {
+                print("Lobby created successfully with ID: \(lobbyUID)")
+                // Optionally dismiss the view or perform additional actions
+            }
+        }
+    }
+    
+    func deleteUser(completion: @escaping (Bool) -> Void) {
+        if let user = Auth.auth().currentUser {
+            user.delete { error in
+                if let error = error {
+                    print("Failed to delete user: \(error.localizedDescription)")
+                    completion(false)
+                } else {
+                    completion(true)
+                }
+            }
+        } else {
+            print("No authenticated user found")
+            completion(false)
+        }
+    }
+
+
+    func deleteLobby(lobbyUID: String, completion: @escaping (Bool) -> Void) {
+        let db = Firestore.firestore()
+        
+        db.collection("lobbies").document(lobbyUID).delete { error in
+            if let error = error {
+                print("Failed to delete lobby: \(error.localizedDescription)")
+                completion(false)
+            } else {
+                print("Lobby deleted successfully")
+                completion(true)
+            }
+        }
+    }
 }

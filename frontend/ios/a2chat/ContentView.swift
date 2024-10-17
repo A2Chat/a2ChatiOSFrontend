@@ -3,18 +3,14 @@ import FirebaseAuth
 
 struct ContentView: View {
     @State private var isSignedIn = false
+    @State private var showMenu = false
+    @State private var navigateToCreateView = false // State for navigation
+    
     @State private var userUID: String? = nil
-
+    
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 20) {
-                // Firebase Status
-                if isSignedIn {
-                    Text("Signed in successfully! UID: \(userUID ?? "N/A")")
-                } else {
-                    Text("Not signed in yet")
-                }
-                
                 // Join Button
                 NavigationLink(destination: JoinView()) {
                     Text("Join")
@@ -27,25 +23,14 @@ struct ContentView: View {
                 }
                 
                 // Create Button
-                NavigationLink(destination: CreateView()) {
+                Button(action: {
+                    signInAnonymously() // Sign in before navigating
+                }) {
                     Text("Create")
                         .font(.headline)
                         .padding()
                         .frame(maxWidth: .infinity)
                         .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                }
-                
-                // Sign In Button
-                Button(action: {
-                    signOutAndSignInAnonymously() // Call the new function
-                }) {
-                    Text("Sign In Anonymously")
-                        .font(.headline)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.orange)
                         .foregroundColor(.white)
                         .cornerRadius(10)
                 }
@@ -59,18 +44,17 @@ struct ContentView: View {
                     userUID = user.uid
                 }
             }
+            .navigationDestination(isPresented: $navigateToCreateView) {
+                if let userUID = userUID {
+                    CreateView(userUID: userUID) // Safely pass the unwrapped value
+                } else {
+                    // Handle the case where userUID is nil, if necessary
+                }
+            }
         }
     }
     
-    // Sign Out and Create a New Anonymous User
-    func signOutAndSignInAnonymously() {
-        do {
-            try Auth.auth().signOut() // Sign out the current user
-            print("User signed out successfully")
-        } catch let signOutError {
-            print("Error signing out: \(signOutError.localizedDescription)")
-        }
-
+    func signInAnonymously() {
         // Sign in anonymously
         Auth.auth().signInAnonymously { authResult, error in
             if let error = error {
@@ -78,9 +62,15 @@ struct ContentView: View {
                 return
             }
             if let user = authResult?.user {
+                // Logging successful sign-in with user ID
                 print("Successfully signed in: \(user.uid)")
-                userUID = user.uid // Update userUID
-                isSignedIn = true
+                
+                // Update state after successful sign-in
+                DispatchQueue.main.async {
+                    userUID = user.uid // Update userUID
+                    isSignedIn = true
+                    navigateToCreateView = true // Trigger navigation
+                }
             }
         }
     }
