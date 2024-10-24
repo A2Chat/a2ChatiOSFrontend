@@ -23,6 +23,7 @@
 		493C44122CBE258D00197402 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 493C44112CBE258D00197402 /* GoogleService-Info.plist */; };
 		493C44162CC17A9E00197402 /* Lobby.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493C44152CC17A9E00197402 /* Lobby.swift */; };
 		493C44182CC17E3100197402 /* LobbyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493C44172CC17E3100197402 /* LobbyService.swift */; };
+		493C441A2CCACC5700197402 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 493C44192CCACC5700197402 /* .gitignore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -58,6 +59,7 @@
 		493C44112CBE258D00197402 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../../../../Downloads/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		493C44152CC17A9E00197402 /* Lobby.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Lobby.swift; sourceTree = "<group>"; };
 		493C44172CC17E3100197402 /* LobbyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LobbyService.swift; sourceTree = "<group>"; };
+		493C44192CCACC5700197402 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -117,6 +119,7 @@
 				491BB16A2CB05A4B00D4EE02 /* ContentView.swift */,
 				491A4EDE2CB4950200894B64 /* JoinView.swift */,
 				491A4EE22CB4958B00894B64 /* CreateView.swift */,
+				493C44192CCACC5700197402 /* .gitignore */,
 				493C44152CC17A9E00197402 /* Lobby.swift */,
 				493C44172CC17E3100197402 /* LobbyService.swift */,
 				491BB16C2CB05A4D00D4EE02 /* Assets.xcassets */,
@@ -263,6 +266,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				493C441A2CCACC5700197402 /* .gitignore in Resources */,
 				491BB1702CB05A4D00D4EE02 /* Preview Assets.xcassets in Resources */,
 				491BB16D2CB05A4D00D4EE02 /* Assets.xcassets in Resources */,
 				493C44122CBE258D00197402 /* GoogleService-Info.plist in Resources */,
