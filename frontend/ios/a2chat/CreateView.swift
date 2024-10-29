@@ -1,6 +1,7 @@
 import SwiftUI
 import FirebaseAuth
 import FirebaseFirestore
+import Foundation
 
 struct CreateView: View {
     var userUID: String
@@ -8,9 +9,6 @@ struct CreateView: View {
     init(userUID: String) {
         self.userUID = userUID
     }
-    
-    // Lobby handling
-    private var lobbyService = LobbyService()
     
     // Textfield
     @State private var chatText = ""
@@ -23,7 +21,6 @@ struct CreateView: View {
     // Room code hide
     @State private var isRoomCodeVisible: Bool = false
     @State private var lobbyUID: String = "" // Store generated lobbyUID
-    let chatTitle: String = "123456"
     
     var body: some View {
         ZStack {
@@ -39,7 +36,7 @@ struct CreateView: View {
         .onAppear {
             createLobby() // Call createLobby when the view appears
         }
-        .navigationBarTitle(isRoomCodeVisible ? chatTitle : "", displayMode: .inline)
+        .navigationBarTitle(isRoomCodeVisible ? lobbyUID : "", displayMode: .inline)
         .toolbar {
             // Show/Hide button
             ToolbarItem(placement: .navigationBarLeading) {
@@ -84,7 +81,7 @@ struct CreateView: View {
             .animation(.easeInOut(duration: 0.2), value: isRoomCodeVisible)
         }
     }
-
+    
     // End button
     private var endButton: some View {
         Button {
@@ -102,7 +99,7 @@ struct CreateView: View {
                 )
         }
     }
-
+    
     // Messages view
     private var messagesView: some View {
         ScrollView {
@@ -125,7 +122,7 @@ struct CreateView: View {
         .background(Color(.init(white: 0.95, alpha: 1)))
         .padding(.bottom, 60)
     }
-
+    
     // Chat bottom bar
     private var chatBottomBar: some View {
         HStack(spacing: 16) {
@@ -149,7 +146,7 @@ struct CreateView: View {
             .cornerRadius(10)
             .focused($isTextFieldFocused)
     }
-
+    
     // Send button
     private var sendButton: some View {
         Button {
@@ -163,82 +160,166 @@ struct CreateView: View {
         .background(Color.blue)
         .cornerRadius(4)
     }
-
+    
     // Sign out and return to the previous view
     private func signOutAndReturn() {
-        // First, attempt to delete the lobby
+        print("Attempting to delete the lobby...")
         deleteLobby(lobbyUID: lobbyUID) { lobbyDeleted in
+            print("Lobby deleted: \(lobbyDeleted)")
             if lobbyDeleted {
-                // Then, attempt to delete the user
-                deleteUser { userDeleted in
-                    if userDeleted {
-                        print("User with UID \(userUID) deleted successfully and signed out")
-                        
-                        // Ensure UI update happens on the main thread
-                        DispatchQueue.main.async {
-                            presentationMode.wrappedValue.dismiss() // Dismiss the current view
+                if let user = Auth.auth().currentUser {
+                    print("Current user found: \(user.uid)")
+                    deleteUser(with: user.uid) { userDeleted in
+                        print("User deletion success: \(userDeleted)")
+                        if userDeleted {
+                            print("User with UID \(user.uid) deleted successfully and signed out")
+                            DispatchQueue.main.async {
+                                print("Dismissing the current view...")
+                                presentationMode.wrappedValue.dismiss()
+                            }
+                        } else {
+                            print("User deletion failed")
                         }
-                    } else {
-                        print("User deletion failed")
                     }
+                } else {
+                    print("No current user found. User will not be deleted.")
                 }
             } else {
                 print("Lobby deletion failed. User will not be signed out.")
             }
         }
     }
+
+    
+    private func fetchAuthConnection() {
+        guard let url = URL(string: "https://a2chat.mooo.com/auth/checkConnection") else {
+            print("Invalid URL")
+            return
+        }
+        
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                print("Error fetching data: \(error)")
+                return
+            }
+            
+            guard let data = data else {
+                print("No data recieved")
+                return
+            }
+            
+            do {
+                let jsonResponse = try JSONSerialization.jsonObject(with: data, options: [])
+                print("Response JSON: \(jsonResponse)")
+            } catch {
+                print("Error parsing JSON: \(error)")
+            }
+        }.resume()
+    }
     
     private func createLobby() {
-        let db = Firestore.firestore()
-            
-        // Create a new document with an auto-generated ID
-        let newLobbyRef = db.collection("lobbies").document()
-        self.lobbyUID = newLobbyRef.documentID // Get the auto-generated lobby ID
-        
-        let newLobby = Lobby(
-            lobbyID: lobbyUID,
-            users: [userUID].compactMap { $0 },
-            isActive: true
-        )
-        
-        newLobbyRef.setData(newLobby.toDictionary()) { error in
-            if let error = error {
-                print("Error creating lobby: \(error.localizedDescription)")
-            } else {
-                print("Lobby created successfully with ID: \(lobbyUID)")
-                // Optionally dismiss the view or perform additional actions
+        fetchAuthConnection()
+        guard let url = URL(string: "https://a2chat.mooo.com/firestore/createLobby") else {
+                print("Invalid URL for lobby creation")
+                return
             }
-        }
+        
+        URLSession.shared.dataTask(with: url) { data, response, error in
+                if let error = error {
+                    print("Error creating lobby: \(error.localizedDescription)")
+                    return
+                }
+                
+                if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200,
+                   let data = data,
+                   let lobbyId = String(data: data, encoding: .utf8) {
+                    print("Lobby created successfully with ID: \(lobbyId)")
+                    self.lobbyUID = lobbyId // Store the created lobby ID if needed
+                } else {
+                    print("Failed to create lobby, received unexpected response.")
+                }
+            }.resume()
     }
     
-    func deleteUser(completion: @escaping (Bool) -> Void) {
-        if let user = Auth.auth().currentUser {
-            user.delete { error in
-                if let error = error {
-                    print("Failed to delete user: \(error.localizedDescription)")
-                    completion(false)
-                } else {
-                    completion(true)
-                }
-            }
-        } else {
-            print("No authenticated user found")
-            completion(false)
+    private func deleteUser(with uid: String, completion: @escaping (Bool) -> Void) {
+        guard let url = URL(string: "https://a2chat.mooo.com/auth/deleteUser") else {
+            print("Invalid URL")
+            return
         }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE" // Set the HTTP method to DELETE
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type") // Set content type to JSON
+
+        // Create the JSON body with the UID
+        let jsonBody: [String: Any] = ["uid": uid]
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: jsonBody, options: [])
+        } catch {
+            print("Error creating JSON body: \(error)")
+            completion(false) // Ensure completion is called on error
+            return
+        }
+
+        // Perform the request
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Error deleting user: \(error)")
+                completion(false) // Completion on error
+                return
+            }
+
+            guard let data = data else {
+                print("No data received")
+                completion(false) // Completion if no data
+                return
+            }
+
+            do {
+                let jsonResponse = try JSONSerialization.jsonObject(with: data, options: [])
+                print("Response JSON: \(jsonResponse)")
+                completion(true) // Call completion with success
+            } catch {
+                print("Error parsing JSON: \(error)")
+                completion(false) // Completion on parsing error
+            }
+        }
+        
+        task.resume() // Start the network task
     }
+
 
 
     func deleteLobby(lobbyUID: String, completion: @escaping (Bool) -> Void) {
-        let db = Firestore.firestore()
+           
+       guard let url = URL(string: "https://a2chat.mooo.com/firestore/deleteLobby") else {
+           print("Invalid URL for lobby deletion")
+           return
+       }
         
-        db.collection("lobbies").document(lobbyUID).delete { error in
-            if let error = error {
-                print("Failed to delete lobby: \(error.localizedDescription)")
-                completion(false)
-            } else {
-                print("Lobby deleted successfully")
-                completion(true)
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let payload: [String: Any] = ["lobbyId": lobbyUID]
+            do {
+                request.httpBody = try JSONSerialization.data(withJSONObject: payload, options: [])
+            } catch {
+                print("Error serializing JSON: \(error.localizedDescription)")
+                return
             }
-        }
+            
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    print("Error deleting lobby: \(error.localizedDescription)")
+                    return
+                }
+                
+                if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                    print("Lobby deleted successfully with ID: \(lobbyUID)")
+                } else {
+                    print("Failed to delete lobby, received unexpected response.")
+                }
+            }.resume()
     }
 }

@@ -55,6 +55,26 @@ struct ContentView: View {
     }
     
     func signInAnonymously() {
+        
+        /**
+            
+            REMOVE CODE to SIGN OUT BEFORE SIGNING IN AFTER DELETION USER WORKS WITH DELETE LOBBY
+         
+         */
+        
+        // First, check if a user is already signed in
+            if Auth.auth().currentUser != nil {
+                // Sign out the current user
+                do {
+                    try Auth.auth().signOut()
+                    print("Signed out the current user.")
+                } catch let signOutError as NSError {
+                    print("Error signing out: \(signOutError.localizedDescription)")
+                    return
+                }
+            }
+        
+        
         // Sign in anonymously
         Auth.auth().signInAnonymously { authResult, error in
             if let error = error {
