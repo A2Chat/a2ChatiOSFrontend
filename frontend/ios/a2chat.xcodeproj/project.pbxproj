@@ -22,6 +22,8 @@
 		492C30132CBDC44300BDE58C /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = 492C30122CBDC44300BDE58C /* FirebaseFunctions */; };
 		493C44122CBE258D00197402 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 493C44112CBE258D00197402 /* GoogleService-Info.plist */; };
 		493C441A2CCACC5700197402 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 493C44192CCACC5700197402 /* .gitignore */; };
+		4979F8782CD3CD3100DA23D1 /* UserFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4979F8772CD3CD3100DA23D1 /* UserFunctions.swift */; };
+		4979F87A2CD3CD3C00DA23D1 /* LobbyFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4979F8792CD3CD3C00DA23D1 /* LobbyFunctions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,6 +58,8 @@
 		491BB1852CB05A4D00D4EE02 /* a2chatUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = a2chatUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		493C44112CBE258D00197402 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../../../../Downloads/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		493C44192CCACC5700197402 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		4979F8772CD3CD3100DA23D1 /* UserFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserFunctions.swift; sourceTree = "<group>"; };
+		4979F8792CD3CD3C00DA23D1 /* LobbyFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LobbyFunctions.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -112,11 +116,10 @@
 			children = (
 				493C44112CBE258D00197402 /* GoogleService-Info.plist */,
 				491BB1682CB05A4B00D4EE02 /* a2chatApp.swift */,
-				491BB16A2CB05A4B00D4EE02 /* ContentView.swift */,
-				491A4EDE2CB4950200894B64 /* JoinView.swift */,
-				491A4EE22CB4958B00894B64 /* CreateView.swift */,
-				493C44192CCACC5700197402 /* .gitignore */,
+				4979F86F2CD3CAA200DA23D1 /* Views */,
+				4979F8742CD3CBB700DA23D1 /* Services */,
 				491BB16C2CB05A4D00D4EE02 /* Assets.xcassets */,
+				493C44192CCACC5700197402 /* .gitignore */,
 				491BB16E2CB05A4D00D4EE02 /* Preview Content */,
 			);
 			path = a2chat;
@@ -145,6 +148,25 @@
 				491BB1852CB05A4D00D4EE02 /* a2chatUITestsLaunchTests.swift */,
 			);
 			path = a2chatUITests;
+			sourceTree = "<group>";
+		};
+		4979F86F2CD3CAA200DA23D1 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				491BB16A2CB05A4B00D4EE02 /* ContentView.swift */,
+				491A4EE22CB4958B00894B64 /* CreateView.swift */,
+				491A4EDE2CB4950200894B64 /* JoinView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		4979F8742CD3CBB700DA23D1 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				4979F8772CD3CD3100DA23D1 /* UserFunctions.swift */,
+				4979F8792CD3CD3C00DA23D1 /* LobbyFunctions.swift */,
+			);
+			path = Services;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -288,6 +310,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4979F87A2CD3CD3C00DA23D1 /* LobbyFunctions.swift in Sources */,
+				4979F8782CD3CD3100DA23D1 /* UserFunctions.swift in Sources */,
 				491BB16B2CB05A4B00D4EE02 /* ContentView.swift in Sources */,
 				491BB1692CB05A4B00D4EE02 /* a2chatApp.swift in Sources */,
 				491A4EE32CB4958B00894B64 /* CreateView.swift in Sources */,

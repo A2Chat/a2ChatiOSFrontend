@@ -5,7 +5,6 @@ struct ContentView: View {
     @State private var isSignedIn = false
     @State private var showMenu = false
     @State private var navigateToCreateView = false // State for navigation
-    
     @State private var userUID: String? = nil
     
     var body: some View {
