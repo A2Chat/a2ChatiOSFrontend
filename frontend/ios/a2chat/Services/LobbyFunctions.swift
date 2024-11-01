@@ -28,83 +28,87 @@ class LobbyFunctions {
     }
     
     
-    func createLobby(userUID: String, completion: @escaping (String) -> Void) {
+    func createLobby(completion: @escaping (String?) -> Void) {
         guard let createLobbyURL = URL(string: "https://a2chat.mooo.com/firestore/createLobby") else {
             print("Invalid URL for lobby creation")
+            completion(nil)
             return
         }
         
         var request = URLRequest(url: createLobbyURL)
-        request.httpMethod = "POST"  // Assuming POST to create a lobby
+        request.httpMethod = "POST"
 
-        // Call the create lobby API
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
                 print("Error creating lobby: \(error.localizedDescription)")
+                completion(nil)
                 return
             }
             
-            if let httpResponse = response as? HTTPURLResponse {
-                print("HTTP Status Code: \(httpResponse.statusCode)")
-                
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 || httpResponse.statusCode == 201 {
                 if let data = data {
-                    let responseString = String(data: data, encoding: .utf8) ?? "Unable to read data"
-                    print("Response Data: \(responseString)")
-                    
-                    if httpResponse.statusCode == 200 || httpResponse.statusCode == 201 {
-                        do {
-                            // Parse JSON response to extract lobby ID
-                            if let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                               let lobbyId = jsonResponse["code"] as? String {
-                                print("Lobby created successfully with ID: \(lobbyId)")
-                                
-                                // Proceed to add the user to the lobby
-                                guard let addUserURL = URL(string: "https://a2chat.mooo.com/firestore/addUserToLobby") else {
-                                    print("Invalid URL for adding user to lobby")
-                                    return
-                                }
-                                
-                                var addUserRequest = URLRequest(url: addUserURL)
-                                addUserRequest.httpMethod = "PUT"
-                                addUserRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
-                                
-                                let payload: [String: Any] = ["lobbyID": lobbyId, "UID": userUID]
-                                addUserRequest.httpBody = try JSONSerialization.data(withJSONObject: payload, options: [])
-                                
-                                URLSession.shared.dataTask(with: addUserRequest) { addUserData, addUserResponse, addUserError in
-                                    if let addUserError = addUserError {
-                                        print("Error adding user to lobby: \(addUserError.localizedDescription)")
-                                        return
-                                    }
-                                    
-                                    if let addUserHttpResponse = addUserResponse as? HTTPURLResponse {
-                                        print("HTTP Status Code for addUserToLobby: \(addUserHttpResponse.statusCode)")
-                                        
-                                        if addUserHttpResponse.statusCode == 200 {
-                                            print("User added to lobby successfully.")
-                                            completion(lobbyId)  // Return the lobby ID
-                                        } else {
-                                            print("Failed to add user to lobby.")
-                                        }
-                                    } else {
-                                        print("Unable to cast response to HTTPURLResponse for addUserToLobby.")
-                                    }
-                                }.resume()
-                            } else {
-                                print("Failed to decode lobby ID from response.")
-                            }
-                        } catch {
-                            print("Error parsing JSON: \(error)")
+                    do {
+                        // Parse JSON response to extract lobby ID
+                        if let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                           let lobbyId = jsonResponse["code"] as? String {
+                            print("Lobby created successfully with ID: \(lobbyId)")
+                            completion(lobbyId)
+                        } else {
+                            print("Failed to decode lobby ID from response.")
+                            completion(nil)
                         }
-                    } else {
-                        print("Failed to create lobby, received unexpected response.")
+                    } catch {
+                        print("Error parsing JSON: \(error)")
+                        completion(nil)
                     }
+                } else {
+                    print("No data received in response.")
+                    completion(nil)
                 }
             } else {
-                print("Unable to cast response to HTTPURLResponse.")
+                print("Failed to create lobby, received unexpected response.")
+                completion(nil)
             }
         }.resume()
     }
+
+    func addUserToLobby(userUID: String, lobbyId: String, completion: @escaping (Bool) -> Void) {
+        guard let addUserURL = URL(string: "https://a2chat.mooo.com/firestore/addUserToLobby") else {
+            print("Invalid URL for adding user to lobby")
+            completion(false)
+            return
+        }
+        
+        var request = URLRequest(url: addUserURL)
+        request.httpMethod = "PUT"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let payload: [String: Any] = ["lobbyID": lobbyId, "UID": userUID]
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: payload, options: [])
+        } catch {
+            print("Error serializing JSON payload: \(error)")
+            completion(false)
+            return
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Error adding user to lobby: \(error.localizedDescription)")
+                completion(false)
+                return
+            }
+            
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                print("User added to lobby successfully.")
+                completion(true)
+            } else {
+                print("Failed to add user to lobby.")
+                completion(false)
+            }
+        }.resume()
+    }
+
 
 
     func deleteLobby(lobbyUID: String, completion: @escaping (Bool) -> Void) {

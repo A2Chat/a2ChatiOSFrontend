@@ -155,10 +155,23 @@ struct CreateView: View {
     }
     
     private func createLobby() {
-        lobbyFunctions.createLobby(userUID: userUID) { id in
-            lobbyUID = id // Ensure lobbyUID is set to update view
+        lobbyFunctions.createLobby { id in
+            if let lobbyId = id {
+                // Use the lobby ID to add the user to the lobby
+                lobbyFunctions.addUserToLobby(userUID: userUID, lobbyId: lobbyId) { success in
+                    if success {
+                        self.lobbyUID = lobbyId // Ensure lobbyUID is set to update view
+                        print("User successfully added to the lobby with ID: \(lobbyId)")
+                    } else {
+                        print("Failed to add user to the lobby.")
+                    }
+                }
+            } else {
+                print("Failed to create lobby.")
+            }
         }
     }
+
     
     private func signOutAndReturn() {
         print("Attempting to delete the lobby...")
