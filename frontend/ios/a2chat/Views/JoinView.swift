@@ -1,25 +1,34 @@
 import SwiftUI
 
 struct JoinView: View {
-    /// View Properties
+    let lobbyFunctions = LobbyFunctions()
+
     @State var otpText: String = ""
-    /// Keyboard State
     @FocusState private var isKeyboardShowing: Bool
     
+    
+    @State private var navigateToCreateView = false
+    var userUID: String // Make sure to initialize this in ContentView
+    @State private var lobbyUID: String = "" // Set or get lobby UID here
+    
     var body: some View {
-        VStack {
-            otpInputField
-            joinButton
+        NavigationView {
+            VStack {
+                otpInputField
+                joinButton
+            }
+            .padding(.all)
+            .frame(maxHeight: .infinity, alignment: .top)
+            .toolbar { keyboardToolbar }
+            .navigationDestination(isPresented: $navigateToCreateView) {
+                            CreateView(userUID: userUID)
+                }
         }
-        .padding(.all)
-        .frame(maxHeight: .infinity, alignment: .top)
-        .toolbar { keyboardToolbar }
     }
     
     /// OTP Input Field
     private var otpInputField: some View {
         HStack(spacing: 0) {
-            /// OTP Textboxes
             ForEach(0..<6, id: \.self) { index in
                 OTPTextBox(index)
             }
@@ -50,7 +59,7 @@ struct JoinView: View {
     /// Join Button
     private var joinButton: some View {
         Button {
-            // Your button action here
+            joinLobbyAndNavigate()
         } label: {
             Text("Join Lobby")
                 .fontWeight(.semibold)
@@ -64,6 +73,19 @@ struct JoinView: View {
         }
         .disableWithOpacity(otpText.count < 6)
     }
+    
+    private func joinLobbyAndNavigate() {
+            lobbyUID = otpText // Set lobbyUID to the OTP text
+            lobbyFunctions.addUserToLobby(userUID: userUID, lobbyId: lobbyUID) { success in
+                if success {
+                    print("User successfully added to the lobby with ID: \(lobbyUID)")
+                    navigateToCreateView = true // Navigate after successful join
+                } else {
+                    print("Failed to add user to the lobby.")
+                }
+            }
+        }
+    
     
     /// Keyboard Toolbar
     private var keyboardToolbar: some ToolbarContent {
@@ -102,12 +124,6 @@ struct JoinView: View {
                 }
         }
         .frame(maxWidth: .infinity)
-    }
-    
-    struct JoinView_Previews: PreviewProvider {
-        static var previews: some View {
-            JoinView()
-        }
     }
 }
 

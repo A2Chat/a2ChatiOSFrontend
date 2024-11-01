@@ -11,7 +11,7 @@ struct ContentView: View {
         NavigationStack {
             VStack(spacing: 20) {
                 // Join Button
-                NavigationLink(destination: JoinView()) {
+                NavigationLink(destination: JoinView(userUID: userUID ?? "")) {
                     Text("Join")
                         .font(.headline)
                         .padding()

@@ -5,6 +5,8 @@ import Foundation
 
 struct CreateView: View {
     let lobbyFunctions = LobbyFunctions()
+    let contentFunctions = ContentView()
+    
     let userFunctions = UserFunctions()
     
     var userUID: String
