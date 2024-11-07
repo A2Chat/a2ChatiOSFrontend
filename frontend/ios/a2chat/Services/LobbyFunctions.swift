@@ -27,7 +27,6 @@ class LobbyFunctions {
         }.resume()
     }
     
-    
     func createLobby(completion: @escaping (String?) -> Void) {
         guard let createLobbyURL = URL(string: "https://a2chat.mooo.com/firestore/createLobby") else {
             print("Invalid URL for lobby creation")
@@ -109,12 +108,10 @@ class LobbyFunctions {
         }.resume()
     }
 
-
-
-    func deleteLobby(lobbyUID: String, completion: @escaping (Bool) -> Void) {
-        guard let url = URL(string: "https://a2chat.mooo.com/firestore/deleteLobby") else {
-            print("Invalid URL for lobby deletion")
-            completion(false)
+    func removeUsersFromLobby(lobbyUID: String, userUID: String, completion: @escaping (Bool, String?) -> Void) {
+        guard let url = URL(string: "https://a2chat.mooo.com/firestore/removeUsersFromLobby") else {
+            print("Invalid URL for user removal")
+            completion(false, "Invalid URL")
             return
         }
         
@@ -122,42 +119,51 @@ class LobbyFunctions {
         request.httpMethod = "DELETE"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        // Payload with correct key
-        let payload: [String: Any] = ["lobbyId": lobbyUID]
+        // Payload with lobby and user IDs
+        let payload: [String: Any] = ["lobbyID": lobbyUID, "UID": userUID]
         
         do {
             request.httpBody = try JSONSerialization.data(withJSONObject: payload, options: [])
         } catch {
             print("Error serializing JSON: \(error.localizedDescription)")
-            completion(false)
+            completion(false, "Error serializing JSON")
             return
         }
         
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
-                print("Error deleting lobby: \(error.localizedDescription)")
-                completion(false)
+                print("Error removing user from lobby: \(error.localizedDescription)")
+                completion(false, error.localizedDescription)
                 return
             }
             
             guard let httpResponse = response as? HTTPURLResponse else {
                 print("Unable to cast response to HTTPURLResponse.")
-                completion(false)
+                completion(false, "Invalid response format")
                 return
             }
             
             print("HTTP Status Code: \(httpResponse.statusCode)")
             
             if httpResponse.statusCode == 200 || httpResponse.statusCode == 204 {
-                print("Lobby deleted successfully with ID: \(lobbyUID)")
-                completion(true)
+                if let data = data,
+                   let responseDict = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                   let message = responseDict["message"] as? String {
+                    print("Success: \(message)")
+                    completion(true, message)
+                } else {
+                    completion(true, "User removed successfully")
+                }
             } else {
-                print("Failed to delete lobby, received unexpected response: \(httpResponse.statusCode)")
+                print("Failed to remove user, unexpected response: \(httpResponse.statusCode)")
                 if let data = data, let responseString = String(data: data, encoding: .utf8) {
                     print("Response Data: \(responseString)")
+                    completion(false, responseString)
+                } else {
+                    completion(false, "Unexpected server response")
                 }
-                completion(false)
             }
         }.resume()
     }
+
 }

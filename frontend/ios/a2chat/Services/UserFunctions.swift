@@ -12,7 +12,7 @@ class UserFunctions {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type") // Set content type to JSON
 
         // Create the JSON body with the UID
-        let jsonBody: [String: Any] = ["uid": uid]
+        let jsonBody: [String: Any] = ["UID": uid]
         do {
             request.httpBody = try JSONSerialization.data(withJSONObject: jsonBody, options: [])
         } catch {

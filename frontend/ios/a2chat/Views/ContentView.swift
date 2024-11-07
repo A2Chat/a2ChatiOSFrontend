@@ -1,17 +1,21 @@
 import SwiftUI
 import FirebaseAuth
+import Foundation
 
 struct ContentView: View {
     @State private var isSignedIn = false
     @State private var showMenu = false
     @State private var navigateToCreateView = false // State for navigation
     @State private var userUID: String? = nil
+    @State private var lobbyUID: String = "" // Make lobbyUID a @State property to allow updates
+    
+    let lobbyFunctions = LobbyFunctions()
     
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
                 // Join Button
-                NavigationLink(destination: JoinView(userUID: userUID ?? "")) {
+                NavigationLink(destination: JoinView()) {
                     Text("Join")
                         .font(.headline)
                         .padding()
@@ -23,7 +27,7 @@ struct ContentView: View {
                 
                 // Create Button
                 Button(action: {
-                    signInAnonymously() // Sign in before navigating
+                    signInAnonymously() // Sign in first
                 }) {
                     Text("Create")
                         .font(.headline)
@@ -43,36 +47,56 @@ struct ContentView: View {
                     userUID = user.uid
                 }
             }
+            .navigationBarBackButtonHidden(true)
             .navigationDestination(isPresented: $navigateToCreateView) {
                 if let userUID = userUID {
-                    CreateView(userUID: userUID) // Safely pass the unwrapped value
+                    CreateView(userUID: userUID, lobbyUID: lobbyUID) // Pass lobbyUID here
                 } else {
                     // Handle the case where userUID is nil, if necessary
+                    Text("User not signed in.")
+                }
+            }
+        }
+    }
+    
+    private func createLobby() {
+        // Ensure that the user is signed in before creating a lobby
+        guard let userUID = userUID else {
+            print("User is not signed in.")
+            return
+        }
+        
+        lobbyFunctions.createLobby { id in
+            print("Lobby creation response received: \(String(describing: id))")
+            if let lobbyId = id {
+                lobbyFunctions.addUserToLobby(userUID: userUID, lobbyId: lobbyId) { success in
+                    print("Adding user to lobby...")
+                    if success {
+                        DispatchQueue.main.async {
+                            lobbyUID = lobbyId // This is now valid with @State
+                            print("User successfully added to the lobby with ID: \(lobbyId)")
+                            navigateToCreateView = true // Trigger navigation once lobby is created
+                        }
+                    } else {
+                        print("Failed to add user to the lobby.")
+                    }
                 }
             }
         }
     }
     
     func signInAnonymously() {
-        
-        /**
-            
-            REMOVE CODE to SIGN OUT BEFORE SIGNING IN AFTER DELETION USER WORKS WITH DELETE LOBBY
-         
-         */
-        
         // First, check if a user is already signed in
-            if Auth.auth().currentUser != nil {
-                // Sign out the current user
-                do {
-                    try Auth.auth().signOut()
-                    print("Signed out the current user.")
-                } catch let signOutError as NSError {
-                    print("Error signing out: \(signOutError.localizedDescription)")
-                    return
-                }
+        if Auth.auth().currentUser != nil {
+            // Sign out the current user
+            do {
+                try Auth.auth().signOut()
+                print("Signed out the current user.")
+            } catch let signOutError as NSError {
+                print("Error signing out: \(signOutError.localizedDescription)")
+                return
             }
-        
+        }
         
         // Sign in anonymously
         Auth.auth().signInAnonymously { authResult, error in
@@ -88,7 +112,7 @@ struct ContentView: View {
                 DispatchQueue.main.async {
                     userUID = user.uid // Update userUID
                     isSignedIn = true
-                    navigateToCreateView = true // Trigger navigation
+                    createLobby() // Now that the user is signed in, create the lobby
                 }
             }
         }

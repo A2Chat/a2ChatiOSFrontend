@@ -1,4 +1,9 @@
 import SwiftUI
+import FirebaseAuth
+
+//check if lobby is valid
+import FirebaseFirestore
+
 
 struct JoinView: View {
     let lobbyFunctions = LobbyFunctions()
@@ -6,10 +11,10 @@ struct JoinView: View {
     @State var otpText: String = ""
     @FocusState private var isKeyboardShowing: Bool
     
-    
     @State private var navigateToCreateView = false
-    var userUID: String // Make sure to initialize this in ContentView
+    @State private var userUID: String? = nil
     @State private var lobbyUID: String = "" // Set or get lobby UID here
+    @State private var errorMessage: String? = nil // To store error message for invalid lobby
     
     var body: some View {
         NavigationView {
@@ -21,8 +26,14 @@ struct JoinView: View {
             .frame(maxHeight: .infinity, alignment: .top)
             .toolbar { keyboardToolbar }
             .navigationDestination(isPresented: $navigateToCreateView) {
-                            CreateView(userUID: userUID)
+                // Proceed with navigation if userUID is not nil
+                if let userUID = userUID {
+                    CreateView(userUID: userUID, lobbyUID: lobbyUID) // Pass both userUID and lobbyUID
+                } else {
+                    EmptyView() // Or handle the case when userUID is nil
                 }
+            }
+
         }
     }
     
@@ -75,17 +86,92 @@ struct JoinView: View {
     }
     
     private func joinLobbyAndNavigate() {
-            lobbyUID = otpText // Set lobbyUID to the OTP text
-            lobbyFunctions.addUserToLobby(userUID: userUID, lobbyId: lobbyUID) { success in
-                if success {
-                    print("User successfully added to the lobby with ID: \(lobbyUID)")
-                    navigateToCreateView = true // Navigate after successful join
+        // First, check if the lobby is valid
+        checkIfLobbyExists { isValid in
+            if isValid {
+                // If valid, sign in anonymously and join the lobby
+                signInAnonymouslyAndJoinLobby()
+            } else {
+                // Show error if the lobby is invalid
+                errorMessage = "Invalid lobby. Please check the OTP and try again."
+            }
+        }
+    }
+    
+    private func checkIfLobbyExists(completion: @escaping (Bool) -> Void) {
+        let db = Firestore.firestore()
+        let lobbyRef = db.collection("lobbies").document(otpText)  // Assuming otpText is the lobby ID
+        
+        lobbyRef.getDocument { document, error in
+            if let error = error {
+                print("Error checking lobby: \(error.localizedDescription)")
+                completion(false)
+            } else {
+                // Check if the document exists (lobby is valid)
+                if let document = document, document.exists {
+                    print("Lobby exists.")
+                    completion(true)
                 } else {
-                    print("Failed to add user to the lobby.")
+                    print("Lobby does not exist.")
+                    completion(false)
                 }
             }
         }
+    }
     
+    /// Sign In Anonymously and Join Lobby
+    private func signInAnonymouslyAndJoinLobby() {
+        // First, check if a user is already signed in
+        if Auth.auth().currentUser != nil {
+            // Sign out the current user
+            do {
+                try Auth.auth().signOut()
+                print("Signed out the current user.")
+            } catch let signOutError as NSError {
+                print("Error signing out: \(signOutError.localizedDescription)")
+                return
+            }
+        }
+        
+        // Sign in anonymously
+        Auth.auth().signInAnonymously { authResult, error in
+            if let error = error {
+                print("Error signing in: \(error.localizedDescription)")
+                return
+            }
+            if let user = authResult?.user {
+                // Logging successful sign-in with user ID
+                print("Successfully signed in: \(user.uid)")
+                
+                // Update state after successful sign-in
+                DispatchQueue.main.async {
+                    userUID = user.uid // Update userUID
+                    print("User UID after sign-in: \(String(describing: userUID))")
+                    joinLobby() // Now that the user is signed in, join the lobby
+                }
+            }
+        }
+    }
+
+    private func joinLobby() {
+        // Make sure userUID is non-nil before attempting to use it
+        guard let userUID = userUID else {
+            print("User UID is nil")
+            return
+        }
+        
+        // Join the lobby with the entered OTP (which is used as the lobbyUID)
+        lobbyUID = otpText // Set lobbyUID to the OTP text
+        lobbyFunctions.addUserToLobby(userUID: userUID, lobbyId: lobbyUID) { success in
+            if success {
+                print("User successfully added to the lobby with ID: \(lobbyUID)")
+                navigateToCreateView = true // Navigate after successful join
+            } else {
+                print("Failed to add user to the lobby.")
+            }
+        }
+    }
+
     
     /// Keyboard Toolbar
     private var keyboardToolbar: some ToolbarContent {

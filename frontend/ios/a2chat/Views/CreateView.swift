@@ -2,29 +2,29 @@ import SwiftUI
 import FirebaseAuth
 import FirebaseFirestore
 import Foundation
-
 struct CreateView: View {
     let lobbyFunctions = LobbyFunctions()
-    let contentFunctions = ContentView()
-    
     let userFunctions = UserFunctions()
     
     var userUID: String
-    init(userUID: String) {
-        self.userUID = userUID
-    }
+    var lobbyUID: String
     
-    //Textfield
+    //textbox
     @State private var chatText = ""
     @FocusState private var isTextFieldFocused: Bool
     @Environment(\.presentationMode) var presentationMode
     
-    //End button
+    //code
     @State private var showAlert = false
-    
-    //Room code
     @State private var isRoomCodeVisible: Bool = false
-    @State private var lobbyUID: String = "" // Store generated lobbyUID
+    
+    init(userUID: String, lobbyUID: String) {
+        self.userUID = userUID
+        self.lobbyUID = lobbyUID
+    }
+    
+    //destination after finished
+    @State private var navigateBackToContentView = false
     
     var body: some View {
         ZStack {
@@ -36,10 +36,7 @@ struct CreateView: View {
             }
         }
         .padding(.top, 16)
-        .onAppear {
-            createLobby()
-        }
-        .navigationBarTitle(isRoomCodeVisible ? lobbyUID : "", displayMode: .inline)
+        .navigationBarTitle(isRoomCodeVisible ? (lobbyUID) : "", displayMode: .inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 showButton
@@ -48,7 +45,7 @@ struct CreateView: View {
                 endButton
             }
         }
-        .navigationBarBackButtonHidden(true)
+        .navigationBarBackButtonHidden(true) // Hide the back button here
         .alert(isPresented: $showAlert) {
             Alert(
                 title: Text("End Chat"),
@@ -59,7 +56,11 @@ struct CreateView: View {
                 secondaryButton: .cancel()
             )
         }
+        .navigationDestination(isPresented: $navigateBackToContentView) {
+            ContentView() // Navigate back to ContentView after deletion
+        }
     }
+
     
     private var showButton: some View {
         Button(action: {
@@ -155,43 +156,31 @@ struct CreateView: View {
         .background(Color.blue)
         .cornerRadius(4)
     }
-    
-    private func createLobby() {
-        lobbyFunctions.createLobby { id in
-            if let lobbyId = id {
-                // Use the lobby ID to add the user to the lobby
-                lobbyFunctions.addUserToLobby(userUID: userUID, lobbyId: lobbyId) { success in
-                    if success {
-                        self.lobbyUID = lobbyId // Ensure lobbyUID is set to update view
-                        print("User successfully added to the lobby with ID: \(lobbyId)")
-                    } else {
-                        print("Failed to add user to the lobby.")
+
+    private func signOutAndReturn() {
+        print("Attempting to remove user from the lobby...")
+        lobbyFunctions.removeUsersFromLobby(lobbyUID: lobbyUID, userUID: Auth.auth().currentUser?.uid ?? "") { userRemoved, message in
+            print("User removed from lobby: \(userRemoved), message: \(message ?? "No message")")
+            
+            if userRemoved {
+                if let user = Auth.auth().currentUser {
+                    print("Current user found: \(user.uid), proceeding with user deletion...")
+                    userFunctions.deleteUser(with: user.uid) { userDeleted in
+                        print("User deletion success: \(userDeleted)")
+                        if userDeleted {
+                            // Set the state to trigger navigation to ContentView
+                            DispatchQueue.main.async {
+                                navigateBackToContentView = true
+                            }
+                        }
                     }
+                } else {
+                    print("No current user found, cannot delete user.")
                 }
             } else {
-                print("Failed to create lobby.")
+                print("Failed to remove user from lobby, user deletion will not proceed.")
             }
         }
     }
 
-    
-    private func signOutAndReturn() {
-        print("Attempting to delete the lobby...")
-        lobbyFunctions.deleteLobby(lobbyUID: lobbyUID) { lobbyDeleted in
-            print("Lobby deleted: \(lobbyDeleted)")
-            if lobbyDeleted {
-                if let user = Auth.auth().currentUser {
-                    print("Current user found: \(user.uid)")
-                    userFunctions.deleteUser(with: user.uid) { userDeleted in
-                        print("User deletion success: \(userDeleted)")
-                        if userDeleted {
-                            DispatchQueue.main.async {
-                                presentationMode.wrappedValue.dismiss()
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
 }
