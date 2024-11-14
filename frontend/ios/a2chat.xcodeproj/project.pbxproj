@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		491A4EDF2CB4950200894B64 /* JoinView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 491A4EDE2CB4950200894B64 /* JoinView.swift */; };
-		491A4EE32CB4958B00894B64 /* CreateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 491A4EE22CB4958B00894B64 /* CreateView.swift */; };
 		491BB1692CB05A4B00D4EE02 /* a2chatApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 491BB1682CB05A4B00D4EE02 /* a2chatApp.swift */; };
 		491BB16B2CB05A4B00D4EE02 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 491BB16A2CB05A4B00D4EE02 /* ContentView.swift */; };
 		491BB16D2CB05A4D00D4EE02 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 491BB16C2CB05A4D00D4EE02 /* Assets.xcassets */; };
@@ -16,11 +15,14 @@
 		491BB17A2CB05A4D00D4EE02 /* a2chatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 491BB1792CB05A4D00D4EE02 /* a2chatTests.swift */; };
 		491BB1842CB05A4D00D4EE02 /* a2chatUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 491BB1832CB05A4D00D4EE02 /* a2chatUITests.swift */; };
 		491BB1862CB05A4D00D4EE02 /* a2chatUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 491BB1852CB05A4D00D4EE02 /* a2chatUITestsLaunchTests.swift */; };
+		492312172CDD248C00CAD2E2 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 492312162CDD248C00CAD2E2 /* GoogleService-Info.plist */; };
+		492312192CDD258100CAD2E2 /* MessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 492312182CDD258100CAD2E2 /* MessageView.swift */; };
+		4923121B2CDE7DCC00CAD2E2 /* MessageFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4923121A2CDE7DCC00CAD2E2 /* MessageFunctions.swift */; };
+		4923121E2CDEA43100CAD2E2 /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = 4923121D2CDEA43100CAD2E2 /* FirebaseDatabase */; };
 		492C300D2CBDC44300BDE58C /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 492C300C2CBDC44300BDE58C /* FirebaseAnalytics */; };
 		492C300F2CBDC44300BDE58C /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 492C300E2CBDC44300BDE58C /* FirebaseAuth */; };
 		492C30112CBDC44300BDE58C /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 492C30102CBDC44300BDE58C /* FirebaseFirestore */; };
 		492C30132CBDC44300BDE58C /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = 492C30122CBDC44300BDE58C /* FirebaseFunctions */; };
-		493C44122CBE258D00197402 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 493C44112CBE258D00197402 /* GoogleService-Info.plist */; };
 		493C441A2CCACC5700197402 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 493C44192CCACC5700197402 /* .gitignore */; };
 		4979F8782CD3CD3100DA23D1 /* UserFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4979F8772CD3CD3100DA23D1 /* UserFunctions.swift */; };
 		4979F87A2CD3CD3C00DA23D1 /* LobbyFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4979F8792CD3CD3C00DA23D1 /* LobbyFunctions.swift */; };
@@ -45,7 +47,6 @@
 
 /* Begin PBXFileReference section */
 		491A4EDE2CB4950200894B64 /* JoinView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JoinView.swift; sourceTree = "<group>"; };
-		491A4EE22CB4958B00894B64 /* CreateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateView.swift; sourceTree = "<group>"; };
 		491BB1652CB05A4B00D4EE02 /* a2chat.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = a2chat.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		491BB1682CB05A4B00D4EE02 /* a2chatApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = a2chatApp.swift; sourceTree = "<group>"; };
 		491BB16A2CB05A4B00D4EE02 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -56,7 +57,9 @@
 		491BB17F2CB05A4D00D4EE02 /* a2chatUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = a2chatUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		491BB1832CB05A4D00D4EE02 /* a2chatUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = a2chatUITests.swift; sourceTree = "<group>"; };
 		491BB1852CB05A4D00D4EE02 /* a2chatUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = a2chatUITestsLaunchTests.swift; sourceTree = "<group>"; };
-		493C44112CBE258D00197402 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../../../../Downloads/GoogleService-Info.plist"; sourceTree = "<group>"; };
+		492312162CDD248C00CAD2E2 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../../../Downloads/GoogleService-Info.plist"; sourceTree = "<group>"; };
+		492312182CDD258100CAD2E2 /* MessageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageView.swift; sourceTree = "<group>"; };
+		4923121A2CDE7DCC00CAD2E2 /* MessageFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageFunctions.swift; sourceTree = "<group>"; };
 		493C44192CCACC5700197402 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		4979F8772CD3CD3100DA23D1 /* UserFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserFunctions.swift; sourceTree = "<group>"; };
 		4979F8792CD3CD3C00DA23D1 /* LobbyFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LobbyFunctions.swift; sourceTree = "<group>"; };
@@ -67,6 +70,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4923121E2CDEA43100CAD2E2 /* FirebaseDatabase in Frameworks */,
 				492C300D2CBDC44300BDE58C /* FirebaseAnalytics in Frameworks */,
 				492C300F2CBDC44300BDE58C /* FirebaseAuth in Frameworks */,
 				492C30112CBDC44300BDE58C /* FirebaseFirestore in Frameworks */,
@@ -94,10 +98,12 @@
 		491BB15C2CB05A4A00D4EE02 = {
 			isa = PBXGroup;
 			children = (
+				492312162CDD248C00CAD2E2 /* GoogleService-Info.plist */,
 				491BB1672CB05A4B00D4EE02 /* a2chat */,
 				491BB1782CB05A4D00D4EE02 /* a2chatTests */,
 				491BB1822CB05A4D00D4EE02 /* a2chatUITests */,
 				491BB1662CB05A4B00D4EE02 /* Products */,
+				4923121C2CDEA43100CAD2E2 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -114,7 +120,6 @@
 		491BB1672CB05A4B00D4EE02 /* a2chat */ = {
 			isa = PBXGroup;
 			children = (
-				493C44112CBE258D00197402 /* GoogleService-Info.plist */,
 				491BB1682CB05A4B00D4EE02 /* a2chatApp.swift */,
 				4979F86F2CD3CAA200DA23D1 /* Views */,
 				4979F8742CD3CBB700DA23D1 /* Services */,
@@ -150,11 +155,18 @@
 			path = a2chatUITests;
 			sourceTree = "<group>";
 		};
+		4923121C2CDEA43100CAD2E2 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		4979F86F2CD3CAA200DA23D1 /* Views */ = {
 			isa = PBXGroup;
 			children = (
 				491BB16A2CB05A4B00D4EE02 /* ContentView.swift */,
-				491A4EE22CB4958B00894B64 /* CreateView.swift */,
+				492312182CDD258100CAD2E2 /* MessageView.swift */,
 				491A4EDE2CB4950200894B64 /* JoinView.swift */,
 			);
 			path = Views;
@@ -165,6 +177,7 @@
 			children = (
 				4979F8772CD3CD3100DA23D1 /* UserFunctions.swift */,
 				4979F8792CD3CD3C00DA23D1 /* LobbyFunctions.swift */,
+				4923121A2CDE7DCC00CAD2E2 /* MessageFunctions.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -190,6 +203,7 @@
 				492C300E2CBDC44300BDE58C /* FirebaseAuth */,
 				492C30102CBDC44300BDE58C /* FirebaseFirestore */,
 				492C30122CBDC44300BDE58C /* FirebaseFunctions */,
+				4923121D2CDEA43100CAD2E2 /* FirebaseDatabase */,
 			);
 			productName = a2chat;
 			productReference = 491BB1652CB05A4B00D4EE02 /* a2chat.app */;
@@ -283,9 +297,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				493C441A2CCACC5700197402 /* .gitignore in Resources */,
+				492312172CDD248C00CAD2E2 /* GoogleService-Info.plist in Resources */,
 				491BB1702CB05A4D00D4EE02 /* Preview Assets.xcassets in Resources */,
 				491BB16D2CB05A4D00D4EE02 /* Assets.xcassets in Resources */,
-				493C44122CBE258D00197402 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -314,8 +328,9 @@
 				4979F8782CD3CD3100DA23D1 /* UserFunctions.swift in Sources */,
 				491BB16B2CB05A4B00D4EE02 /* ContentView.swift in Sources */,
 				491BB1692CB05A4B00D4EE02 /* a2chatApp.swift in Sources */,
-				491A4EE32CB4958B00894B64 /* CreateView.swift in Sources */,
+				492312192CDD258100CAD2E2 /* MessageView.swift in Sources */,
 				491A4EDF2CB4950200894B64 /* JoinView.swift in Sources */,
+				4923121B2CDE7DCC00CAD2E2 /* MessageFunctions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -482,6 +497,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"a2chat/Preview Content\"";
 				DEVELOPMENT_TEAM = NK84H4QJ5W;
 				ENABLE_PREVIEWS = YES;
+				"EXCLUDED_ARCHS[sdk=*]" = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = a2chat/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -494,7 +510,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = a2.a2chat2;
+				PRODUCT_BUNDLE_IDENTIFIER = a2.a2chat3;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -514,6 +530,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"a2chat/Preview Content\"";
 				DEVELOPMENT_TEAM = NK84H4QJ5W;
 				ENABLE_PREVIEWS = YES;
+				"EXCLUDED_ARCHS[sdk=*]" = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = a2chat/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -526,7 +543,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = a2.a2chat2;
+				PRODUCT_BUNDLE_IDENTIFIER = a2.a2chat3;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -660,6 +677,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		4923121D2CDEA43100CAD2E2 /* FirebaseDatabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 492C300B2CBDC44300BDE58C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseDatabase;
+		};
 		492C300C2CBDC44300BDE58C /* FirebaseAnalytics */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 492C300B2CBDC44300BDE58C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;

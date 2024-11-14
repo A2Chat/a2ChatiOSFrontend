@@ -3,9 +3,7 @@ import FirebaseAuth
 import Foundation
 
 struct ContentView: View {
-    @State private var isSignedIn = false
-    @State private var showMenu = false
-    @State private var navigateToCreateView = false // State for navigation
+    @State private var navigateToMessageView = false // State for navigation
     @State private var userUID: String? = nil
     @State private var lobbyUID: String = "" // Make lobbyUID a @State property to allow updates
     
@@ -43,14 +41,13 @@ struct ContentView: View {
             .onAppear {
                 // Check if user is already signed in
                 if let user = Auth.auth().currentUser {
-                    isSignedIn = true
                     userUID = user.uid
                 }
             }
             .navigationBarBackButtonHidden(true)
-            .navigationDestination(isPresented: $navigateToCreateView) {
+            .navigationDestination(isPresented: $navigateToMessageView) {
                 if let userUID = userUID {
-                    CreateView(userUID: userUID, lobbyUID: lobbyUID) // Pass lobbyUID here
+                    MessageView(userUID: userUID, lobbyUID: lobbyUID) // Pass lobbyUID here
                 } else {
                     // Handle the case where userUID is nil, if necessary
                     Text("User not signed in.")
@@ -75,7 +72,7 @@ struct ContentView: View {
                         DispatchQueue.main.async {
                             lobbyUID = lobbyId // This is now valid with @State
                             print("User successfully added to the lobby with ID: \(lobbyId)")
-                            navigateToCreateView = true // Trigger navigation once lobby is created
+                            navigateToMessageView = true // Trigger navigation once lobby is created
                         }
                     } else {
                         print("Failed to add user to the lobby.")
@@ -111,7 +108,6 @@ struct ContentView: View {
                 // Update state after successful sign-in
                 DispatchQueue.main.async {
                     userUID = user.uid // Update userUID
-                    isSignedIn = true
                     createLobby() // Now that the user is signed in, create the lobby
                 }
             }

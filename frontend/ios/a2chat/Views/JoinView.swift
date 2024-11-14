@@ -11,7 +11,7 @@ struct JoinView: View {
     @State var otpText: String = ""
     @FocusState private var isKeyboardShowing: Bool
     
-    @State private var navigateToCreateView = false
+    @State private var navigateToMessageView = false
     @State private var userUID: String? = nil
     @State private var lobbyUID: String = "" // Set or get lobby UID here
     @State private var errorMessage: String? = nil // To store error message for invalid lobby
@@ -25,15 +25,14 @@ struct JoinView: View {
             .padding(.all)
             .frame(maxHeight: .infinity, alignment: .top)
             .toolbar { keyboardToolbar }
-            .navigationDestination(isPresented: $navigateToCreateView) {
+            .navigationDestination(isPresented: $navigateToMessageView) {
                 // Proceed with navigation if userUID is not nil
                 if let userUID = userUID {
-                    CreateView(userUID: userUID, lobbyUID: lobbyUID) // Pass both userUID and lobbyUID
+                    MessageView(userUID: userUID, lobbyUID: lobbyUID) // Pass both userUID and lobbyUID
                 } else {
                     EmptyView() // Or handle the case when userUID is nil
                 }
             }
-
         }
     }
     
@@ -98,6 +97,8 @@ struct JoinView: View {
         }
     }
     
+    
+    // TURN INTO API CALL LATER
     private func checkIfLobbyExists(completion: @escaping (Bool) -> Void) {
         let db = Firestore.firestore()
         let lobbyRef = db.collection("lobbies").document(otpText)  // Assuming otpText is the lobby ID
@@ -165,7 +166,7 @@ struct JoinView: View {
         lobbyFunctions.addUserToLobby(userUID: userUID, lobbyId: lobbyUID) { success in
             if success {
                 print("User successfully added to the lobby with ID: \(lobbyUID)")
-                navigateToCreateView = true // Navigate after successful join
+                navigateToMessageView = true // Navigate after successful join
             } else {
                 print("Failed to add user to the lobby.")
             }

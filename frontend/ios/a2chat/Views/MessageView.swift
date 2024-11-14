@@ -2,19 +2,34 @@ import SwiftUI
 import FirebaseAuth
 import FirebaseFirestore
 import Foundation
-struct CreateView: View {
+import FirebaseDatabase
+
+struct MessageData: Identifiable {
+    let id: String // Use the message ID from Firebase if available
+    let messageContent: String
+    let fromUser: Bool
+}
+
+struct MessageView: View {
+    private var databaseRef = Database.database().reference()
+    @State private var currentListOfMessages : [MessageData] = []
+    
     let lobbyFunctions = LobbyFunctions()
     let userFunctions = UserFunctions()
+    let messageFunctions = MessageFunctions()
     
     var userUID: String
     var lobbyUID: String
+    
+    //chat messages
+    @StateObject private var viewModel = MessageFunctions()
     
     //textbox
     @State private var chatText = ""
     @FocusState private var isTextFieldFocused: Bool
     @Environment(\.presentationMode) var presentationMode
     
-    //code
+    //lobby code
     @State private var showAlert = false
     @State private var isRoomCodeVisible: Bool = false
     
@@ -45,6 +60,17 @@ struct CreateView: View {
                 endButton
             }
         }
+        .onAppear {
+            viewModel.getMessages(lobbyId: lobbyUID) { success in
+                if success {
+                    print("Messages fetched successfully.")
+                }
+            }
+            setupFirebaseListener()
+        }
+        .onReceive(viewModel.$messages) { _ in
+            print("Messages updated in view: \(viewModel.messages)")
+        }
         .navigationBarBackButtonHidden(true) // Hide the back button here
         .alert(isPresented: $showAlert) {
             Alert(
@@ -60,7 +86,6 @@ struct CreateView: View {
             ContentView() // Navigate back to ContentView after deletion
         }
     }
-
     
     private var showButton: some View {
         Button(action: {
@@ -102,23 +127,44 @@ struct CreateView: View {
     
     private var messagesView: some View {
         ScrollView {
-            ForEach(0..<20) { num in
-                HStack {
-                    Spacer()
-                    HStack {
-                        Text("ANDREW GET THE DRUGS")
-                            .foregroundColor(.white)
-                    }
+            if currentListOfMessages.isEmpty {
+                Text("No messages yet")
+                    .foregroundColor(.gray)
                     .padding()
-                    .background(Color.blue)
-                    .cornerRadius(8)
+            } else {
+                ForEach(currentListOfMessages) { message in
+                    HStack {
+                        // Check if the message is from the user or another user
+                        if message.fromUser {
+                            Spacer() // Align to the right if from the user
+                            HStack {
+                                Text(message.messageContent)
+                                    .foregroundColor(.white)
+                                    .padding()
+                                    .background(Color.blue) // Green background for the user's messages
+                                    .cornerRadius(8)
+                            }
+                            .padding(.horizontal)
+                            .padding(.top, 4)
+                        } else {
+                            // Align to the left if the message is not from the user
+                            HStack {
+                                Text(message.messageContent)
+                                    .foregroundColor(.white)
+                                    .padding()
+                                    .background(Color.green) // Blue background for other users' messages
+                                    .cornerRadius(8)
+                            }
+                            .padding(.horizontal)
+                            .padding(.top, 4)
+                            Spacer() // Ensure it aligns to the left
+                        }
+                    }
                 }
-                .padding(.horizontal)
-                .padding(.top, 4)
             }
             HStack { Spacer() }
         }
-        .background(Color(.init(white: 0.95, alpha: 1)))
+        .background(Color(.init(white: 0.95, alpha: 1))) // Slight background for the chat view
         .padding(.bottom, 60)
     }
     
@@ -146,7 +192,16 @@ struct CreateView: View {
     
     private var sendButton: some View {
         Button {
-            // Action for sending the message
+            let timestamp = ISO8601DateFormatter().string(from: Date())
+            messageFunctions.sendMessage(message: chatText, userUID: userUID, timestamp: timestamp, lobbyId: lobbyUID) { success in
+                if success {
+                    DispatchQueue.main.async {
+                        chatText = "" // Clear the text field
+                    }
+                } else {
+                    print("Failed to send message.")
+                }
+            }
         } label: {
             Text("Send")
                 .foregroundColor(.white)
@@ -156,31 +211,43 @@ struct CreateView: View {
         .background(Color.blue)
         .cornerRadius(4)
     }
+    
+    private func setupFirebaseListener() {
+        let lobbyRef = databaseRef.child("messages").child(lobbyUID)
+        lobbyRef.observe(DataEventType.value, with: { snapshot in
+            var snapshotMessageList: [MessageData] = []
+            
+            for child in snapshot.children {
+                if let childSnapshot = child as? DataSnapshot,
+                   let message = childSnapshot.childSnapshot(forPath: "messageContent").value as? String,
+                   let uid = childSnapshot.childSnapshot(forPath: "userId").value as? String {
+                    let fromUser = uid == userUID
+                    let msgId = childSnapshot.key
+                    let messageData = MessageData(id: msgId, messageContent: message, fromUser: fromUser)
+                    snapshotMessageList.append(messageData)
+                }
+            }
+            
+            // Update the message list
+            print("Messages: \(snapshotMessageList)")
+            self.currentListOfMessages = snapshotMessageList
+        })
+    }
 
     private func signOutAndReturn() {
         print("Attempting to remove user from the lobby...")
-        lobbyFunctions.removeUsersFromLobby(lobbyUID: lobbyUID, userUID: Auth.auth().currentUser?.uid ?? "") { userRemoved, message in
+        lobbyFunctions.batchUserEndChat(lobbyUID: lobbyUID, userUID: Auth.auth().currentUser?.uid ?? "") { userRemoved, message in
             print("User removed from lobby: \(userRemoved), message: \(message ?? "No message")")
             
             if userRemoved {
-                if let user = Auth.auth().currentUser {
-                    print("Current user found: \(user.uid), proceeding with user deletion...")
-                    userFunctions.deleteUser(with: user.uid) { userDeleted in
-                        print("User deletion success: \(userDeleted)")
-                        if userDeleted {
-                            // Set the state to trigger navigation to ContentView
-                            DispatchQueue.main.async {
-                                navigateBackToContentView = true
-                            }
-                        }
+                    print("User deletion success")
+                        // Set the state to trigger navigation to ContentView
+                        DispatchQueue.main.async {
+                        navigateBackToContentView = true
                     }
                 } else {
                     print("No current user found, cannot delete user.")
-                }
-            } else {
-                print("Failed to remove user from lobby, user deletion will not proceed.")
             }
         }
     }
-
 }
