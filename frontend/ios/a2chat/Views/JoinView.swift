@@ -140,7 +140,22 @@ struct JoinView: View {
                 print("Error signing in: \(error.localizedDescription)")
                 return
             }
+            
             if let user = authResult?.user {
+                // Retrieve the ID token for the signed-in user
+                user.getIDToken { idToken, error in
+                    if let error = error {
+                        print("Error getting ID token: \(error.localizedDescription)")
+                        return
+                    }
+                    
+                    if let idToken = idToken {
+                        print("ID Token: \(idToken)") // Log the ID token
+                        // Store the token in UserDefaults for later retrieval
+                        UserDefaults.standard.set(idToken, forKey: "authToken")
+                    }
+                }
+                
                 // Logging successful sign-in with user ID
                 print("Successfully signed in: \(user.uid)")
                 

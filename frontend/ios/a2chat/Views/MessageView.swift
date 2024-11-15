@@ -4,10 +4,16 @@ import FirebaseFirestore
 import Foundation
 import FirebaseDatabase
 
-struct MessageData: Identifiable {
+struct MessageData: Identifiable, Equatable {
     let id: String // Use the message ID from Firebase if available
+    let userid: String
     let messageContent: String
     let fromUser: Bool
+    
+    // Conformance to Equatable
+    static func ==(lhs: MessageData, rhs: MessageData) -> Bool {
+        return lhs.id == rhs.id && lhs.userid == rhs.userid && lhs.messageContent == rhs.messageContent && lhs.fromUser == rhs.fromUser
+    }
 }
 
 struct MessageView: View {
@@ -20,9 +26,6 @@ struct MessageView: View {
     
     var userUID: String
     var lobbyUID: String
-    
-    //chat messages
-    @StateObject private var viewModel = MessageFunctions()
     
     //textbox
     @State private var chatText = ""
@@ -61,15 +64,7 @@ struct MessageView: View {
             }
         }
         .onAppear {
-            viewModel.getMessages(lobbyId: lobbyUID) { success in
-                if success {
-                    print("Messages fetched successfully.")
-                }
-            }
-            setupFirebaseListener()
-        }
-        .onReceive(viewModel.$messages) { _ in
-            print("Messages updated in view: \(viewModel.messages)")
+            currentListOfMessages = setupFirebaseListener()
         }
         .navigationBarBackButtonHidden(true) // Hide the back button here
         .alert(isPresented: $showAlert) {
@@ -126,47 +121,82 @@ struct MessageView: View {
     }
     
     private var messagesView: some View {
-        ScrollView {
-            if currentListOfMessages.isEmpty {
-                Text("No messages yet")
-                    .foregroundColor(.gray)
-                    .padding()
-            } else {
-                ForEach(currentListOfMessages) { message in
-                    HStack {
-                        // Check if the message is from the user or another user
-                        if message.fromUser {
-                            Spacer() // Align to the right if from the user
-                            HStack {
-                                Text(message.messageContent)
-                                    .foregroundColor(.white)
-                                    .padding()
-                                    .background(Color.blue) // Green background for the user's messages
-                                    .cornerRadius(8)
+        ScrollViewReader { proxy in
+            ScrollView {
+                if currentListOfMessages.isEmpty {
+                    Text("No messages yet")
+                        .foregroundColor(.gray)
+                        .padding()
+                } else {
+                    ForEach(currentListOfMessages) { message in
+                        HStack {
+                            if message.fromUser {
+                                Spacer() // Align to the right if from the user
+                                HStack {
+                                    VStack(alignment: .trailing) {
+                                        Text("[\(userUID)]") // Display current user's UID above message
+                                            .font(.footnote)
+                                            .foregroundColor(.gray)
+                                        Text(message.messageContent)
+                                            .foregroundColor(.white)
+                                            .padding(12)
+                                            .background(Color.blue)
+                                            .cornerRadius(8)
+                                    }
+                                }
+                                .padding(.horizontal)
+                                .padding(.top, 4)
+                            } else {
+                                HStack {
+                                    VStack(alignment: .leading) {
+                                        // Display the other user's UID above message
+                                        Text("[\(message.userid)]")
+                                            .font(.footnote)
+                                            .foregroundColor(.gray)
+                                        Text(message.messageContent)
+                                            .foregroundColor(.white)
+                                            .padding(12)
+                                            .background(Color.green)
+                                            .cornerRadius(8)
+                                    }
+                                }
+                                .padding(.horizontal)
+                                .padding(.top, 4)
+                                Spacer()
                             }
-                            .padding(.horizontal)
-                            .padding(.top, 4)
-                        } else {
-                            // Align to the left if the message is not from the user
-                            HStack {
-                                Text(message.messageContent)
-                                    .foregroundColor(.white)
-                                    .padding()
-                                    .background(Color.green) // Blue background for other users' messages
-                                    .cornerRadius(8)
-                            }
-                            .padding(.horizontal)
-                            .padding(.top, 4)
-                            Spacer() // Ensure it aligns to the left
                         }
+                        .id(message.id)
                     }
-                }
-            }
-            HStack { Spacer() }
+                        // Add a dummy bottom marker to scroll to
+                       Color.clear
+                           .id("bottomMarker")
+               }
+               HStack { Spacer() }
+           }
+           .background(Color(.init(white: 0.95, alpha: 1)))
+           .padding(.bottom, 60)
+           .onChange(of: currentListOfMessages) {
+               // Scroll to the bottom when messages change
+               withAnimation {
+                   proxy.scrollTo("bottomMarker", anchor: .bottom)
+               }
+           }
+           .onChange(of: isTextFieldFocused) {
+               // Log when the TextField focus changes
+               if isTextFieldFocused {
+                   print("TextField is focused (isTextFieldFocused = true)")
+               } else {
+                   print("TextField is unfocused (isTextFieldFocused = false)")
+               }
+               // Scroll to the bottom when the text field is tapped
+               withAnimation {
+                   proxy.scrollTo("bottomMarker", anchor: .bottom)
+               }
+           }
         }
-        .background(Color(.init(white: 0.95, alpha: 1))) // Slight background for the chat view
-        .padding(.bottom, 60)
     }
+
+
     
     private var chatBottomBar: some View {
         HStack(spacing: 16) {
@@ -192,11 +222,15 @@ struct MessageView: View {
     
     private var sendButton: some View {
         Button {
+            // Only send if the message is not empty
+            guard !chatText.isEmpty else { return }
+            
             let timestamp = ISO8601DateFormatter().string(from: Date())
             messageFunctions.sendMessage(message: chatText, userUID: userUID, timestamp: timestamp, lobbyId: lobbyUID) { success in
                 if success {
                     DispatchQueue.main.async {
-                        chatText = "" // Clear the text field
+                        chatText = "" // Clear the text field only after sending the message
+                        isTextFieldFocused = false // Dismiss the keyboard
                     }
                 } else {
                     print("Failed to send message.")
@@ -211,8 +245,9 @@ struct MessageView: View {
         .background(Color.blue)
         .cornerRadius(4)
     }
+
     
-    private func setupFirebaseListener() {
+    private func setupFirebaseListener() -> [MessageData] {
         let lobbyRef = databaseRef.child("messages").child(lobbyUID)
         lobbyRef.observe(DataEventType.value, with: { snapshot in
             var snapshotMessageList: [MessageData] = []
@@ -223,7 +258,7 @@ struct MessageView: View {
                    let uid = childSnapshot.childSnapshot(forPath: "userId").value as? String {
                     let fromUser = uid == userUID
                     let msgId = childSnapshot.key
-                    let messageData = MessageData(id: msgId, messageContent: message, fromUser: fromUser)
+                    let messageData = MessageData(id: msgId, userid: uid, messageContent: message, fromUser: fromUser)
                     snapshotMessageList.append(messageData)
                 }
             }
@@ -232,6 +267,7 @@ struct MessageView: View {
             print("Messages: \(snapshotMessageList)")
             self.currentListOfMessages = snapshotMessageList
         })
+        return currentListOfMessages
     }
 
     private func signOutAndReturn() {

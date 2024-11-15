@@ -29,6 +29,16 @@ class MessageFunctions: ObservableObject {
             return
         }
         
+        // Retrieve the token from UserDefaults
+        if let authToken = UserDefaults.standard.string(forKey: "authToken") {
+            // Set the Authorization header with the token
+            request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+        } else {
+            print("No auth token found")
+            completion(false)
+            return
+        }
+        
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
                 print("Error sending message: \(error.localizedDescription)")
@@ -69,6 +79,16 @@ class MessageFunctions: ObservableObject {
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        // Retrieve the token from UserDefaults
+        if let authToken = UserDefaults.standard.string(forKey: "authToken") {
+            // Set the Authorization header with the token
+            request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+        } else {
+            print("No auth token found")
+            completion(false)
+            return
+        }
         
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
