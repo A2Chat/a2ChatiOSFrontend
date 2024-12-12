@@ -20,12 +20,6 @@ A2chat is a secure and user-friendly platfrom for anonymous communication.  It e
 - **Firebase** for authentication, firestore (lobby meta data), and Realtime database (messaging)
 - **Node.js** for [API backend](https://github.com/A2Chat/A2ChatBackend)
 
-## Roadmap
-- [x] MVP: Real-time communication, basic UI, code generation  
-- [ ] security features: api security, hashing code 
-- [ ] push notifications for new messages 
-- [ ] Moderation tools for lobby creators
-
 ## License 
 This project is licensed under the Apache 2.0 License - see the [LICENSE](/LICENSE) file for details.
 
